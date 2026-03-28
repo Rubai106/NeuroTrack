@@ -224,10 +224,11 @@ function ActiveSession({ config, onEnd }) {
   // Mute/unmute
   useEffect(() => {
     if (!audioCtxRef.current) return
-    audioCtxRef.current.destination.channelInterpretation = 'discrete'
-    // We control gain through mute state
-    const g = audioCtxRef.current.createGain()
-    g.gain.value = muted ? 0 : 1
+    if (muted) {
+      audioCtxRef.current.suspend()
+    } else {
+      audioCtxRef.current.resume()
+    }
   }, [muted])
 
   // Countdown
