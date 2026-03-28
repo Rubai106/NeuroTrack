@@ -47,26 +47,64 @@ function createAmbientSound(ctx, type) {
   }
 
   if (type === 'forest') {
-    // Pink noise with slow modulation for forest birds feel
-    const bufferSize = ctx.sampleRate * 4
+    // Pink noise for leaves / wind
+    const bufferSize = ctx.sampleRate * 2
     const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate)
     const data = buffer.getChannelData(0)
     let b0=0, b1=0, b2=0, b3=0, b4=0, b5=0, b6=0
     for (let i = 0; i < bufferSize; i++) {
-      const white = Math.random() * 2 - 1
-      b0 = 0.99886*b0 + white*0.0555179; b1 = 0.99332*b1 + white*0.0750759
-      b2 = 0.96900*b2 + white*0.1538520; b3 = 0.86650*b3 + white*0.3104856
-      b4 = 0.55000*b4 + white*0.5329522; b5 = -0.7616*b5 - white*0.0168980
-      data[i] = (b0+b1+b2+b3+b4+b5+b6 + white*0.5362) / 7
-      b6 = white * 0.115926
+        const white = Math.random() * 2 - 1
+        b0 = 0.99886*b0 + white*0.0555179; b1 = 0.99332*b1 + white*0.0750759
+        b2 = 0.96900*b2 + white*0.1538520; b3 = 0.86650*b3 + white*0.3104856
+        b4 = 0.55000*b4 + white*0.5329522; b5 = -0.7616*b5 - white*0.0168980
+        data[i] = (b0+b1+b2+b3+b4+b5+b6 + white*0.5362) / 7
+        b6 = white * 0.115926
     }
-    const source = ctx.createBufferSource()
-    source.buffer = buffer
-    source.loop = true
-    source.connect(gainNode)
-    gainNode.gain.value = 0.12
-    source.start()
-    return source
+    const noiseSource = ctx.createBufferSource()
+    noiseSource.buffer = buffer
+    noiseSource.loop = true
+    
+    const filter = ctx.createBiquadFilter()
+    filter.type = 'lowpass'
+    filter.frequency.value = 800
+    
+    noiseSource.connect(filter)
+    filter.connect(gainNode)
+    noiseSource.start()
+
+    // Bird sounds using oscillators
+    const birdOsc = ctx.createOscillator()
+    birdOsc.type = 'sine'
+    const birdGain = ctx.createGain()
+    birdGain.gain.value = 0
+    birdOsc.connect(birdGain)
+    birdGain.connect(gainNode)
+    birdOsc.start()
+
+    // Chirp loop
+    const chirp = () => {
+        const now = ctx.currentTime
+        birdOsc.frequency.setValueAtTime(4000 + Math.random() * 2000, now)
+        birdOsc.frequency.exponentialRampToValueAtTime(2000 + Math.random() * 1000, now + 0.1)
+        birdGain.gain.setValueAtTime(0, now)
+        birdGain.gain.linearRampToValueAtTime(0.05, now + 0.05)
+        birdGain.gain.linearRampToValueAtTime(0, now + 0.1)
+    }
+
+    const intervalId = setInterval(() => {
+        if (Math.random() > 0.5) chirp()
+        if (Math.random() > 0.8) setTimeout(chirp, 150)
+    }, 2000)
+
+    gainNode.gain.value = 0.15
+
+    return {
+        stop: () => {
+            try { noiseSource.stop() } catch(e){}
+            try { birdOsc.stop() } catch(e){}
+            clearInterval(intervalId)
+        }
+    }
   }
 
   // Default silence
@@ -98,9 +136,9 @@ function SetupScreen({ onStart }) {
             <label className="block text-xs font-medium text-gray-400 mb-1.5 uppercase tracking-wide">Subject</label>
             <select className="w-full bg-white/10 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white focus:outline-none focus:border-sage-500 focus:ring-1 focus:ring-sage-500/50"
               value={form.subject} onChange={set('subject')}>
-              {subjects.length === 0 && <option value="">Select subject</option>}
-              {subjects.map(s => <option key={s} value={s}>{s}</option>)}
-              <option value="Other">Other</option>
+              {subjects.length === 0 && <option value="" className="bg-[#0f1117] text-white">Select subject</option>}
+              {subjects.map(s => <option key={s} value={s} className="bg-[#0f1117] text-white">{s}</option>)}
+              <option value="Other" className="bg-[#0f1117] text-white">Other</option>
             </select>
           </div>
 
@@ -197,7 +235,7 @@ function ActiveSession({ config, onEnd }) {
     if (running) {
       intervalRef.current = setInterval(() => {
         setSecs(s => {
-          if (s <= 1) { clearInterval(intervalRef.current); onEnd(0, interruptions); return 0 }
+          if (s <= 1) { clearInterval(intervalRef.current); onEnd(totalSecs, interruptions); return 0 }
           return s - 1
         })
       }, 1000)
@@ -357,7 +395,7 @@ function SummaryScreen({ config, elapsed, interruptions, onDone }) {
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">Productive time</span>
-            <span className="text-white font-medium">{Math.round(elapsed / 60 * (1 - interruptions * 0.05))}m</span>
+            <span className="text-white font-medium">{Math.max(0, Math.round(elapsed / 60 * (1 - interruptions * 0.05)))}m</span>
           </div>
           <div className="flex justify-between text-sm">
             <span className="text-gray-400">XP earned</span>
