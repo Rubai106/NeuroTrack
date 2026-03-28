@@ -1,0 +1,67 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  * { box-sizing: border-box; }
+  
+  body {
+    @apply bg-[#F7F7F5] text-[#111111] font-sans antialiased;
+    font-size: 15px;
+    line-height: 1.6;
+  }
+
+  ::-webkit-scrollbar { width: 5px; height: 5px; }
+  ::-webkit-scrollbar-track { background: transparent; }
+  ::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
+  ::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+}
+
+@layer components {
+  .card {
+    @apply bg-white rounded-xl border border-gray-100 shadow-sm;
+  }
+  .btn-primary {
+    @apply bg-sage-600 hover:bg-sage-700 text-white font-medium px-4 py-2 rounded-lg transition-colors text-sm;
+  }
+  .btn-secondary {
+    @apply bg-white hover:bg-gray-50 text-gray-700 font-medium px-4 py-2 rounded-lg border border-gray-200 transition-colors text-sm;
+  }
+  .btn-ghost {
+    @apply hover:bg-gray-100 text-gray-600 font-medium px-3 py-1.5 rounded-lg transition-colors text-sm;
+  }
+  .input {
+    @apply w-full bg-white border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-sage-200 focus:border-sage-400 transition-all;
+  }
+  .label {
+    @apply block text-xs font-medium text-gray-500 mb-1.5 uppercase tracking-wide;
+  }
+  .stat-card {
+    @apply card p-5 flex flex-col gap-1;
+  }
+  .badge {
+    @apply inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-medium;
+  }
+  .nav-item {
+    @apply flex items-center gap-2.5 px-3 py-2 rounded-lg text-sm font-medium transition-all;
+  }
+  .nav-item-active {
+    @apply bg-sage-50 text-sage-700;
+  }
+  .nav-item-inactive {
+    @apply text-gray-500 hover:bg-gray-100 hover:text-gray-800;
+  }
+  .section-title {
+    @apply text-lg font-semibold text-gray-900 tracking-tight;
+  }
+  .page-header {
+    @apply mb-6;
+  }
+}
+
+/* Subtle animations */
+.fade-in { animation: fadeIn 0.2s ease-out; }
+@keyframes fadeIn { from { opacity: 0; transform: translateY(4px); } to { opacity: 1; transform: translateY(0); } }
+
+.slide-in { animation: slideIn 0.25s ease-out; }
+@keyframes slideIn { from { opacity: 0; transform: translateX(-8px); } to { opacity: 1; transform: translateX(0); } }
