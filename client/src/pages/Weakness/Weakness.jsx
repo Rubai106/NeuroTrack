@@ -103,8 +103,11 @@ export default function Weakness() {
         </div>
       )}
 
-      {loading ? (
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      {loading && data.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <Spinner size="lg" />
+          <p className="text-xs text-gray-400 animate-pulse">Analyzing weaknesses...</p>
+        </div>
       ) : data.length === 0 ? (
         <EmptyState icon="🎯" title="No quiz results yet"
           description="Log your quiz results to get a ranked list of topics that need more attention"

@@ -62,7 +62,12 @@ export default function Dashboard() {
     }).finally(() => setLoading(false))
   }, [])
 
-  if (loading) return <div className="flex items-center justify-center h-64"><Spinner size="lg" /></div>
+  if (loading && !stats) return (
+    <div className="flex flex-col items-center justify-center h-64 space-y-4">
+      <Spinner size="lg" />
+      <p className="text-xs text-gray-400 animate-pulse">Syncing your study data...</p>
+    </div>
+  )
 
   const today = stats?.today || {}
   const week  = stats?.week  || {}

@@ -8,7 +8,8 @@ const getNotes = asyncWrapper(async (req, res) => {
   if (subject) query.subject = subject;
   if (tag) query.tags = tag;
   if (search) query.$text = { $search: search };
-  const notes = await Note.find(query).sort({ isPinned: -1, updatedAt: -1 });
+  const notes = await Note.find(query).sort({ isPinned: -1, updatedAt: -1 }).lean();
+
   res.json({ success: true, data: notes });
 });
 

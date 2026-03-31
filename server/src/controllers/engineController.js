@@ -3,7 +3,8 @@ const BehaviorProfile = require('../models/BehaviorProfile');
 const { runDecisionEngine } = require('../engines/decisionEngine');
 
 const getBehaviorProfile = asyncWrapper(async (req, res) => {
-  let profile = await BehaviorProfile.findOne({ user: req.user._id });
+  let profile = await BehaviorProfile.findOne({ user: req.user._id }).lean();
+
   if (!profile) profile = await BehaviorProfile.create({ user: req.user._id });
   
   res.json({
@@ -21,7 +22,8 @@ const getBehaviorProfile = asyncWrapper(async (req, res) => {
 });
 
 const getReadiness = asyncWrapper(async (req, res) => {
-  const profile = await BehaviorProfile.findOne({ user: req.user._id });
+  const profile = await BehaviorProfile.findOne({ user: req.user._id }).lean();
+
   const subject = req.params.subject;
   let readinessScore = 0;
   let components = { mastery: 0, activity: 0, decayPenalty: 0 };
@@ -46,7 +48,8 @@ const getReadiness = asyncWrapper(async (req, res) => {
 });
 
 const getDailyBrief = asyncWrapper(async (req, res) => {
-  const profile = await BehaviorProfile.findOne({ user: req.user._id });
+  const profile = await BehaviorProfile.findOne({ user: req.user._id }).lean();
+
   res.json({
     status: 'success',
     data: {

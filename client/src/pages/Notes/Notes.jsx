@@ -102,8 +102,11 @@ export default function Notes() {
         </select>
       </div>
 
-      {loading ? (
-        <div className="flex justify-center py-20"><Spinner size="lg" /></div>
+      {loading && notes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 space-y-4">
+          <Spinner size="lg" />
+          <p className="text-xs text-gray-400 animate-pulse">Loading notes...</p>
+        </div>
       ) : notes.length === 0 ? (
         <EmptyState icon="📝" title="No notes yet"
           description="Keep your study notes organized by subject and topic"
