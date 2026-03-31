@@ -5,16 +5,21 @@ const User = require('../models/User');
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/neurotrack';
 
 async function ensureDemoUser() {
+  const isMain = require.main === module;
+  
   try {
-    await mongoose.connect(MONGO_URI);
-    console.log('Connected to MongoDB');
+    // Only connect if we're not already connected and we're the main process
+    if (isMain && mongoose.connection.readyState === 0) {
+      await mongoose.connect(MONGO_URI);
+      console.log('Connected to MongoDB (standalone)');
+    }
 
     // Check if demo user already exists
     const existingUser = await User.findOne({ email: 'demo@neurotrack.app' });
     
     if (existingUser) {
       console.log('Demo user already exists');
-      process.exit(0);
+      return true;
     }
 
     // Create demo user if doesn't exist
@@ -46,18 +51,24 @@ async function ensureDemoUser() {
 
     console.log('Demo user created:', user.email);
     console.log('Login credentials: demo@neurotrack.app / demo123');
+    return true;
     
   } catch (error) {
-    console.error('Error ensuring demo user:', error);
-    process.exit(1);
+    console.error('Error ensuring demo user:', error.message);
+    if (isMain) process.exit(1);
+    throw error;
   } finally {
-    await mongoose.disconnect();
+    // Only disconnect if we're the main process and we connected
+    if (isMain && mongoose.connection.readyState !== 0) {
+      await mongoose.disconnect();
+    }
   }
 }
 
 // Run if called directly
 if (require.main === module) {
-  ensureDemoUser();
+  ensureDemoUser().then(() => process.exit(0)).catch(() => process.exit(1));
 }
 
 module.exports = ensureDemoUser;
+

@@ -1,6 +1,10 @@
 const mongoose = require('mongoose');
 
 const connectDB = async () => {
+  if (!process.env.MONGODB_URI) {
+    console.warn('⚠️  MONGODB_URI is not defined in environment variables. Using default local fallback.');
+  }
+
   try {
     const conn = await mongoose.connect(
       process.env.MONGODB_URI || 'mongodb://localhost:27017/neurotrack'
@@ -8,8 +12,10 @@ const connectDB = async () => {
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
+    console.error('   Ensure MONGODB_URI is correctly set in your environment (e.g., Render Dashboard).');
     process.exit(1);
   }
 };
 
 module.exports = connectDB;
+
