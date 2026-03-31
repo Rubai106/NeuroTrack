@@ -7,6 +7,7 @@ import Spinner from '../../components/ui/Spinner'
 import DailyBrief from '../../components/ui/DailyBrief'
 import InsightsFeed from '../../components/ui/InsightsFeed'
 import ReviewQueue from '../../components/ui/ReviewQueue'
+import CognitiveLoadMeter from '../../components/ui/CognitiveLoadMeter'
 import { Clock, Flame, Target, Plus, ArrowRight, Zap } from 'lucide-react'
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { format, subDays } from 'date-fns'
@@ -88,6 +89,9 @@ export default function Dashboard() {
           </Link>
         </div>
       </div>
+
+      {/* Cognitive Load Meter */}
+      <CognitiveLoadMeter />
 
       {/* Daily Brief */}
       <DailyBrief />

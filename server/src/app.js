@@ -31,6 +31,7 @@ app.use('/api/weakness',     require('./routes/weaknessRoutes'));
 app.use('/api/gamification', require('./routes/gamificationRoutes'));
 app.use('/api/predictions',  require('./routes/predictionRoutes'));
 app.use('/api/profile',      require('./routes/profileRoutes'));
+app.use('/api',              require('./routes/engineRoutes'));
 
 app.use(notFound);
 app.use(errorHandler);

@@ -100,3 +100,11 @@ export const insightsApi = {
   getDailyBrief: () => api.get('/analytics/brief'),
   getReviewQueue:() => api.get('/analytics/review-queue'),
 }
+
+// Engine APIs
+export const engineApi = {
+  getBehaviorProfile: () => api.get('/behavior-profile'),
+  getDailyBrief: () => api.get('/system/daily-brief'),
+  getReadiness: (subject) => api.get(`/readiness/${subject}`),
+  evaluateDecision: (data) => api.post('/decision/evaluate', data),
+}

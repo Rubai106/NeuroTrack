@@ -3,6 +3,7 @@ const User = require('../models/User');
 const { updateStudyWeight } = require('../services/weaknessService');
 const { awardXP, checkAndAwardBadges, updateStreak } = require('../services/gamificationService');
 const { AppError, asyncWrapper } = require('../middleware/errorHandler');
+const { dispatchEnginePipeline } = require('../engines/engineDispatcher');
 
 const getSessions = asyncWrapper(async (req, res) => {
   const { limit = 20, page = 1, subject, startDate, endDate } = req.query;
@@ -42,7 +43,21 @@ const createSession = asyncWrapper(async (req, res) => {
   await updateStreak(req.user._id);
   const newBadges = await checkAndAwardBadges(req.user._id);
 
-  res.status(201).json({ success: true, data: session, xpResult, newBadges });
+  // Run the Cognitive Engine Pipeline
+  const engineResult = await dispatchEnginePipeline(req.user._id, {
+    subject: session.subject,
+    durationMinutes: session.durationMinutes,
+    interruptionCount: req.body.interruptionCount || 0
+  });
+
+  res.status(201).json({ 
+    success: true, 
+    data: session, 
+    xpResult, 
+    newBadges,
+    engineProfile: engineResult.profile,
+    engineDecision: engineResult.decision
+  });
 });
 
 const updateSession = asyncWrapper(async (req, res) => {
