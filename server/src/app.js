@@ -7,6 +7,7 @@ require('dotenv').config();
 
 const connectDB = require('./config/database');
 const { errorHandler, notFound } = require('./middleware/errorHandler');
+const ensureDemoUser = require('./seeds/ensureDemoUser');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -36,9 +37,20 @@ app.use('/api',              require('./routes/engineRoutes'));
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, () => {
+app.listen(PORT, async () => {
   console.log(`\n🚀 NeuroTrack API → http://localhost:${PORT}`);
   console.log(`📊 Env: ${process.env.NODE_ENV || 'development'}\n`);
+  
+  // Ensure demo user exists in production
+  if (process.env.NODE_ENV === 'production') {
+    console.log('🔧 Ensuring demo user exists...');
+    try {
+      await ensureDemoUser();
+      console.log('✅ Demo user check complete');
+    } catch (error) {
+      console.error('❌ Failed to ensure demo user:', error.message);
+    }
+  }
 });
 
 module.exports = app;
