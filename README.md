@@ -83,3 +83,39 @@ Set the API base URL in your build environment:
 ```env
 VITE_API_URL=https://your-backend-api.com/api
 ```
+
+### 🔧 Troubleshooting Deployment Issues
+
+**Can't login or register after deployment?**
+
+1. **Check Environment Variables:**
+   - Ensure `MONGODB_URI` is correctly set
+   - Verify `JWT_SECRET` exists and is secure
+   - Set `NODE_ENV=production`
+
+2. **Test Backend Health:**
+   ```bash
+   curl https://your-backend-url.com/api/health
+   ```
+   Should return: `{"status":"ok","environment":"production","database":"connected"}`
+
+3. **Check CORS Issues:**
+   - The app now allows all origins in production
+   - Verify `CLIENT_URL` matches your frontend domain
+
+4. **Manual Demo User Creation:**
+   If demo user doesn't exist, run in your deployed environment:
+   ```bash
+   cd server && npm run ensure-demo
+   ```
+
+5. **Database Connection:**
+   - Ensure MongoDB cluster allows connections from your deployment platform
+   - Check database user permissions
+   - Verify connection string format
+
+**Common Issues:**
+- Missing `JWT_SECRET` → Login tokens can't be created
+- Wrong `MONGODB_URI` → Database connection fails
+- CORS restrictions → Frontend can't reach backend
+- Demo user not created → Can't login with demo credentials
