@@ -3,11 +3,11 @@ import { Link } from 'react-router-dom'
 import { analyticsApi, sessionApi, goalApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import ProgressBar from '../../components/ui/ProgressBar'
-import Spinner from '../../components/ui/Spinner'
 import DailyBrief from '../../components/ui/DailyBrief'
-import InsightsFeed from '../../components/ui/InsightsFeed'
+import SystemFeed from '../../components/ui/SystemFeed'
 import ReviewQueue from '../../components/ui/ReviewQueue'
 import CognitiveLoadMeter from '../../components/ui/CognitiveLoadMeter'
+import ReadinessDisplay from '../../components/ui/ReadinessDisplay'
 import { Clock, Flame, Target, Plus, ArrowRight, Zap } from 'lucide-react'
 import { AreaChart, Area, XAxis, Tooltip, ResponsiveContainer } from 'recharts'
 import { format, subDays } from 'date-fns'
@@ -178,8 +178,10 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* Insights + Review Queue side by side */}
-      <InsightsFeed />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
+        <ReadinessDisplay />
+        <SystemFeed />
+      </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <ReviewQueue />

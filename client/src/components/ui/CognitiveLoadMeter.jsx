@@ -8,12 +8,17 @@ export default function CognitiveLoadMeter() {
   const [state, setState] = useState('DeepFocus')
 
   useEffect(() => {
-    engineApi.getBehaviorProfile().then(res => {
-      if (res.data?.data) {
-         setLoad(res.data.data.metrics?.cognitiveLoad || 0)
-         setState(res.data.data.currentState || 'DeepFocus')
-      }
-    }).catch(() => {})
+    const fetchLoad = () => {
+      engineApi.getBehaviorProfile().then(res => {
+        if (res.data?.data) {
+           setLoad(res.data.data.metrics?.cognitiveLoad || 0)
+           setState(res.data.data.currentState || 'DeepFocus')
+        }
+      }).catch(() => {})
+    }
+    fetchLoad()
+    const interval = setInterval(fetchLoad, 10000)
+    return () => clearInterval(interval)
   }, [])
 
   const pct = Math.min(100, Math.max(0, load))

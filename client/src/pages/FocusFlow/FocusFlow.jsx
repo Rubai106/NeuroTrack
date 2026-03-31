@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../../context/AuthContext'
-import { sessionApi } from '../../services/api'
+import { sessionApi, engineApi } from '../../services/api'
 import { Play, Pause, X, Volume2, VolumeX, AlertCircle, Check } from 'lucide-react'
 import clsx from 'clsx'
 import toast from 'react-hot-toast'
@@ -123,11 +123,31 @@ function SetupScreen({ onStart }) {
   const { user } = useAuth()
   const subjects = user?.subjects?.map(s => s.name) || []
   const [form, setForm] = useState({ subject: subjects[0] || '', topic: '', duration: 50, sound: 'none' })
+  const [intervention, setIntervention] = useState(null)
+  const [evaluating, setEvaluating] = useState(false)
+  const [override, setOverride] = useState(false)
+  
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.type === 'number' ? +e.target.value : e.target.value }))
+
+  useEffect(() => {
+    if (!form.subject) return
+    setEvaluating(true)
+    engineApi.evaluateDecision({ intent: 'start_session', subject: form.subject, duration: form.duration })
+      .then(res => {
+         if (res.data?.data?.intervention?.hasWarning) {
+            setIntervention(res.data.data.intervention)
+            setOverride(false)
+         } else {
+            setIntervention(null)
+         }
+      })
+      .catch(() => setIntervention(null))
+      .finally(() => setEvaluating(false))
+  }, [form.subject, form.duration])
 
   return (
     <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-6">
-      <div className="w-full max-w-sm">
+      <div className="w-full max-w-sm fade-in">
         <h1 className="text-xl font-semibold text-white mb-1">Focus Flow</h1>
         <p className="text-sm text-gray-400 mb-8">No distractions. Just you and the work.</p>
 
@@ -183,12 +203,35 @@ function SetupScreen({ onStart }) {
             </div>
           </div>
 
-          <button onClick={() => onStart(form)}
-            disabled={!form.subject}
-            className="w-full bg-sage-600 hover:bg-sage-700 disabled:opacity-40 text-white font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2 mt-2">
-            <Play size={16} />
-            Begin session
-          </button>
+          <div className="mt-6 mb-2">
+             {intervention && (
+               <div className="bg-amber-500/10 border border-amber-500/30 rounded-xl p-4 mb-3 animate-[fadeIn_0.3s_ease-out]">
+                 <div className="flex items-start gap-2.5">
+                   <AlertCircle className="text-amber-500 shrink-0 mt-0.5" size={16} />
+                   <div>
+                     <h4 className="text-sm font-semibold text-amber-500 uppercase tracking-wide">System Warning</h4>
+                     <p className="text-xs text-amber-500/80 mt-1 leading-relaxed">{intervention.warningMessage}</p>
+                   </div>
+                 </div>
+               </div>
+             )}
+
+             <button onClick={() => {
+                if (intervention && !override) { setOverride(true); return }
+                onStart(form)
+             }}
+               disabled={!form.subject || evaluating}
+               className={clsx(
+                  "w-full font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2",
+                  intervention && !override 
+                     ? "bg-amber-600/20 text-amber-500 border border-amber-600/50 hover:bg-amber-600/30" 
+                     : "bg-sage-600 hover:bg-sage-700 text-white",
+                  (!form.subject || evaluating) && "opacity-40 cursor-not-allowed"
+               )}>
+               {!evaluating && <Play size={16} />}
+               {evaluating ? "Evaluating load..." : (intervention && !override ? "Acknowledge Risk & Proceed" : "Begin session")}
+             </button>
+          </div>
         </div>
       </div>
     </div>
