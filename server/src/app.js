@@ -17,11 +17,14 @@ connectDB();
 
 app.use(helmet());
 app.use(cors({ 
-  origin: process.env.NODE_ENV === 'production' 
-    ? true // Allow all origins in production
-    : process.env.CLIENT_URL || 'http://localhost:5173', 
+  origin: [
+    'https://neuro-track-jet.vercel.app',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173'
+  ],
   credentials: true 
 }));
+
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true }));
