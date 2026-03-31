@@ -13,9 +13,10 @@ const connectDB = async () => {
   } catch (error) {
     console.error(`❌ MongoDB connection error: ${error.message}`);
     console.error('   Ensure MONGODB_URI is correctly set in your environment (e.g., Render Dashboard).');
-    process.exit(1);
+    // We no longer call process.exit(1) to allow the app to stay alive for debugging
   }
 };
+
 
 module.exports = connectDB;
 

@@ -71,3 +71,15 @@ app.listen(PORT, '0.0.0.0', async () => {
 });
 
 module.exports = app;
+
+// Global Reliability Handlers
+process.on('unhandledRejection', (err) => {
+  console.error('💥 UNHANDLED REJECTION! Shutting down gracefully...');
+  console.error(err.name, err.message);
+});
+
+process.on('uncaughtException', (err) => {
+  console.error('💥 UNCAUGHT EXCEPTION! Shutting down gracefully...');
+  console.error(err.name, err.message);
+});
+
