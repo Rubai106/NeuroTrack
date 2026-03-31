@@ -4,7 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
-    "build": "vite build",
+    "build": "npx vite build",
     "preview": "vite preview"
   },
   "dependencies": {
@@ -16,13 +16,13 @@
     "date-fns": "^3.6.0",
     "react-hot-toast": "^2.4.1",
     "lucide-react": "^0.390.0",
-    "clsx": "^2.1.1"
+    "clsx": "^2.1.1",
+    "vite": "^5.2.13"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
     "autoprefixer": "^10.4.19",
     "postcss": "^8.4.38",
-    "tailwindcss": "^3.4.4",
-    "vite": "^5.2.13"
+    "tailwindcss": "^3.4.4"
   }
 }
