@@ -51,7 +51,7 @@ app.use('/api',              require('./routes/engineRoutes'));
 app.use(notFound);
 app.use(errorHandler);
 
-app.listen(PORT, async () => {
+app.listen(PORT, '0.0.0.0', async () => {
   console.log(`\n🚀 NeuroTrack API → http://localhost:${PORT}`);
   console.log(`📊 Env: ${process.env.NODE_ENV || 'development'}\n`);
   
