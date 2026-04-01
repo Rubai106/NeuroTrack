@@ -34,6 +34,7 @@ export default function Sessions() {
   const [modalOpen, setModalOpen] = useState(false)
   const [pomodoroOpen, setPomodoroOpen] = useState(false)
   const [form, setForm] = useState(defaultForm)
+  const [customSubject, setCustomSubject] = useState('')
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState({ subject: '', days: 30 })
 
@@ -58,13 +59,15 @@ export default function Sessions() {
 
   const handleSubmit = async (e) => {
     e.preventDefault()
-    if (!form.subject) { toast.error('Subject is required'); return }
+    const resolvedSubject = form.subject === 'Other' ? customSubject.trim() : form.subject.trim()
+    if (!resolvedSubject) { toast.error('Subject is required'); return }
     setSaving(true)
     try {
-      await sessionApi.create({ ...form, date: new Date(), completedAt: new Date() })
+      await sessionApi.create({ ...form, subject: resolvedSubject, date: new Date(), completedAt: new Date() })
       toast.success('Session logged! +20 XP')
       setModalOpen(false)
       setForm(defaultForm)
+      setCustomSubject('')
       load()
     } catch (err) {
       toast.error(err.response?.data?.message || 'Failed to save')
@@ -186,6 +189,14 @@ export default function Sessions() {
                 {subjects.map(s => <option key={s}>{s}</option>)}
                 <option value="Other">Other</option>
               </select>
+              {form.subject === 'Other' && (
+                <input
+                  className="input mt-2"
+                  placeholder="Type subject name"
+                  value={customSubject}
+                  onChange={(e) => setCustomSubject(e.target.value)}
+                />
+              )}
             </div>
             <div className="col-span-2">
               <label className="label">Topic</label>

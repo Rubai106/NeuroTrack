@@ -1,9 +1,16 @@
 import axios from 'axios'
-import toast from 'react-hot-toast'
+
+const isBrowser = typeof window !== 'undefined'
+const hostname = isBrowser ? window.location.hostname : ''
+const isLocalHost = hostname === 'localhost' || hostname === '127.0.0.1'
+
+const resolvedBaseURL = isLocalHost
+  ? (import.meta.env.VITE_API_URL || '/api')
+  : '/api'
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || '/api',
-  timeout: 15000,
+  baseURL: resolvedBaseURL,
+  timeout: 30000,
 })
 
 

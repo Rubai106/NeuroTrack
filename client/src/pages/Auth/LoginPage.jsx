@@ -4,10 +4,20 @@ import { useAuth } from '../../context/AuthContext'
 import { Zap, Eye, EyeOff } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const getAuthErrorMessage = (err, fallback) => {
+  if (err?.code === 'ECONNABORTED') {
+    return 'Server took too long to respond. Please try again in a few seconds.'
+  }
+  if (!err?.response) {
+    return 'Cannot reach server. Check deployment URL/CORS or wait for backend wake-up.'
+  }
+  return err.response?.data?.message || fallback
+}
+
 export default function LoginPage() {
   const { login } = useAuth()
   const navigate = useNavigate()
-  const [form, setForm] = useState({ email: 'demo@neurotrack.app', password: 'demo123' })
+  const [form, setForm] = useState({ email: '', password: '' })
   const [showPw, setShowPw] = useState(false)
   const [loading, setLoading] = useState(false)
 
@@ -18,7 +28,7 @@ export default function LoginPage() {
       await login(form.email, form.password)
       navigate('/')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed')
+      toast.error(getAuthErrorMessage(err, 'Login failed'))
     } finally {
       setLoading(false)
     }
@@ -100,11 +110,6 @@ export default function LoginPage() {
               {loading ? <span className="animate-pulse">Signing in…</span> : 'Sign in'}
             </button>
           </form>
-
-          <div className="mt-4 p-3 bg-sage-50 rounded-lg border border-sage-100">
-            <p className="text-xs text-sage-700 font-medium mb-1">Demo credentials</p>
-            <p className="text-xs text-sage-600 font-mono">demo@neurotrack.app / demo123</p>
-          </div>
 
           <p className="mt-6 text-sm text-gray-500 text-center">
             Don't have an account?{' '}

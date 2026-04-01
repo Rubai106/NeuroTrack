@@ -123,16 +123,18 @@ function SetupScreen({ onStart }) {
   const { user } = useAuth()
   const subjects = user?.subjects?.map(s => s.name) || []
   const [form, setForm] = useState({ subject: subjects[0] || '', topic: '', duration: 50, sound: 'none' })
+  const [customSubject, setCustomSubject] = useState('')
   const [intervention, setIntervention] = useState(null)
   const [evaluating, setEvaluating] = useState(false)
   const [override, setOverride] = useState(false)
   
   const set = k => e => setForm(p => ({ ...p, [k]: e.target.type === 'number' ? +e.target.value : e.target.value }))
+  const resolvedSubject = form.subject === 'Other' ? customSubject.trim() : form.subject.trim()
 
   useEffect(() => {
-    if (!form.subject) return
+    if (!resolvedSubject) return
     setEvaluating(true)
-    engineApi.evaluateDecision({ intent: 'start_session', subject: form.subject, duration: form.duration })
+    engineApi.evaluateDecision({ intent: 'start_session', subject: resolvedSubject, duration: form.duration })
       .then(res => {
          if (res.data?.data?.intervention?.hasWarning) {
             setIntervention(res.data.data.intervention)
@@ -143,7 +145,7 @@ function SetupScreen({ onStart }) {
       })
       .catch(() => setIntervention(null))
       .finally(() => setEvaluating(false))
-  }, [form.subject, form.duration])
+  }, [resolvedSubject, form.duration])
 
   return (
     <div className="min-h-screen bg-[#0f1117] flex items-center justify-center p-6">
@@ -160,6 +162,14 @@ function SetupScreen({ onStart }) {
               {subjects.map(s => <option key={s} value={s} className="bg-[#0f1117] text-white">{s}</option>)}
               <option value="Other" className="bg-[#0f1117] text-white">Other</option>
             </select>
+            {form.subject === 'Other' && (
+              <input
+                className="w-full mt-2 bg-white/10 border border-white/10 rounded-lg px-3 py-2.5 text-sm text-white placeholder-gray-500 focus:outline-none focus:border-sage-500"
+                placeholder="Type subject name"
+                value={customSubject}
+                onChange={(e) => setCustomSubject(e.target.value)}
+              />
+            )}
           </div>
 
           <div>
@@ -218,15 +228,15 @@ function SetupScreen({ onStart }) {
 
              <button onClick={() => {
                 if (intervention && !override) { setOverride(true); return }
-                onStart(form)
+                onStart({ ...form, subject: resolvedSubject })
              }}
-               disabled={!form.subject || evaluating}
+               disabled={!resolvedSubject || evaluating}
                className={clsx(
                   "w-full font-medium py-3 rounded-xl transition-colors flex items-center justify-center gap-2",
                   intervention && !override 
                      ? "bg-amber-600/20 text-amber-500 border border-amber-600/50 hover:bg-amber-600/30" 
                      : "bg-sage-600 hover:bg-sage-700 text-white",
-                  (!form.subject || evaluating) && "opacity-40 cursor-not-allowed"
+                  (!resolvedSubject || evaluating) && "opacity-40 cursor-not-allowed"
                )}>
                {!evaluating && <Play size={16} />}
                {evaluating ? "Evaluating load..." : (intervention && !override ? "Acknowledge Risk & Proceed" : "Begin session")}

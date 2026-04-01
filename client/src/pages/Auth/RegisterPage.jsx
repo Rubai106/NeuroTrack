@@ -4,6 +4,16 @@ import { useAuth } from '../../context/AuthContext'
 import { Zap } from 'lucide-react'
 import toast from 'react-hot-toast'
 
+const getAuthErrorMessage = (err, fallback) => {
+  if (err?.code === 'ECONNABORTED') {
+    return 'Server took too long to respond. Please try again in a few seconds.'
+  }
+  if (!err?.response) {
+    return 'Cannot reach server. Check deployment URL/CORS or wait for backend wake-up.'
+  }
+  return err.response?.data?.message || fallback
+}
+
 export default function RegisterPage() {
   const { register } = useAuth()
   const navigate = useNavigate()
@@ -21,7 +31,7 @@ export default function RegisterPage() {
       toast.success('Account created!')
       navigate('/')
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Registration failed')
+      toast.error(getAuthErrorMessage(err, 'Registration failed'))
     } finally {
       setLoading(false)
     }

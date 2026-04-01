@@ -16,13 +16,27 @@ const PORT = process.env.PORT || 5000;
 connectDB();
 
 app.use(helmet());
-app.use(cors({ 
-  origin: [
-    'https://neuro-track-jet.vercel.app',
-    'http://localhost:5173',
-    'http://127.0.0.1:5173'
-  ],
-  credentials: true 
+
+const configuredOrigins = [
+  process.env.CLIENT_URL,
+  ...(process.env.CORS_ORIGINS || '').split(',').map((origin) => origin.trim())
+].filter(Boolean);
+
+const isAllowedOrigin = (origin) => {
+  if (!origin) return true;
+  if (configuredOrigins.includes(origin)) return true;
+  if (/^https:\/\/[a-zA-Z0-9-]+\.vercel\.app$/.test(origin)) return true;
+  if (/^http:\/\/localhost:\d+$/.test(origin)) return true;
+  if (/^http:\/\/127\.0\.0\.1:\d+$/.test(origin)) return true;
+  return false;
+};
+
+app.use(cors({
+  origin: (origin, callback) => {
+    if (isAllowedOrigin(origin)) return callback(null, true);
+    return callback(new Error(`Not allowed by CORS: ${origin}`));
+  },
+  credentials: true
 }));
 
 app.use(rateLimit({ windowMs: 15 * 60 * 1000, max: 200 }));
@@ -82,4 +96,3 @@ process.on('uncaughtException', (err) => {
   console.error('💥 UNCAUGHT EXCEPTION! Shutting down gracefully...');
   console.error(err.name, err.message);
 });
-

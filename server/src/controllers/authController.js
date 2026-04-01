@@ -10,7 +10,8 @@ const register = asyncWrapper(async (req, res) => {
   if (!name || !email || !password) throw new AppError('All fields required', 400);
   const user = await User.create({ name, email, password });
   const token = signToken(user._id);
-  res.status(201).json({ success: true, token, user });
+  const { password: _, ...userData } = user.toObject();
+  res.status(201).json({ success: true, token, user: userData });
 });
 
 const login = asyncWrapper(async (req, res) => {
@@ -35,7 +36,7 @@ const updateProfile = asyncWrapper(async (req, res) => {
     { name, examDate, examName, subjects, preferences },
     { new: true, runValidators: true }
   );
-  res.json({ success: true, user });
+  res.json({ success: true, user: user.toObject() });
 });
 
 module.exports = { register, login, getMe, updateProfile };
