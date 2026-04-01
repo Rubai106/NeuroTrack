@@ -1,32 +1,41 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, lazy, Suspense } from 'react'
 import { Routes, Route, Navigate } from 'react-router-dom'
 import { AuthProvider, useAuth } from './context/AuthContext'
-import AppLayout from './components/layout/AppLayout'
-import CommandPalette from './components/ui/CommandPalette'
-import LoginPage from './pages/Auth/LoginPage'
-import RegisterPage from './pages/Auth/RegisterPage'
-import Dashboard from './pages/Dashboard/Dashboard'
-import Sessions from './pages/Sessions/Sessions'
-import Analytics from './pages/Analytics/Analytics'
-import Goals from './pages/Goals/Goals'
-import Notes from './pages/Notes/Notes'
-import Weakness from './pages/Weakness/Weakness'
-import Coach from './pages/Coach/Coach'
-import Gamification from './pages/Gamification/Gamification'
-import Predictions from './pages/Predictions/Predictions'
-import FocusFlow from './pages/FocusFlow/FocusFlow'
 import Spinner from './components/ui/Spinner'
+
+const AppLayout = lazy(() => import('./components/layout/AppLayout'))
+const CommandPalette = lazy(() => import('./components/ui/CommandPalette'))
+const LoginPage = lazy(() => import('./pages/Auth/LoginPage'))
+const RegisterPage = lazy(() => import('./pages/Auth/RegisterPage'))
+const Dashboard = lazy(() => import('./pages/Dashboard/Dashboard'))
+const Sessions = lazy(() => import('./pages/Sessions/Sessions'))
+const Analytics = lazy(() => import('./pages/Analytics/Analytics'))
+const Goals = lazy(() => import('./pages/Goals/Goals'))
+const Notes = lazy(() => import('./pages/Notes/Notes'))
+const Weakness = lazy(() => import('./pages/Weakness/Weakness'))
+const Coach = lazy(() => import('./pages/Coach/Coach'))
+const Gamification = lazy(() => import('./pages/Gamification/Gamification'))
+const Predictions = lazy(() => import('./pages/Predictions/Predictions'))
+const FocusFlow = lazy(() => import('./pages/FocusFlow/FocusFlow'))
+
+function RouteFallback({ full = false }) {
+  return (
+    <div className={full ? 'h-screen flex items-center justify-center' : 'h-64 flex items-center justify-center'}>
+      <Spinner size="lg" />
+    </div>
+  )
+}
 
 function RequireAuth({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="h-screen flex items-center justify-center"><Spinner size="lg" /></div>
+  if (loading) return <RouteFallback full />
   if (!user) return <Navigate to="/login" replace />
   return children
 }
 
 function GuestOnly({ children }) {
   const { user, loading } = useAuth()
-  if (loading) return <div className="h-screen flex items-center justify-center"><Spinner size="lg" /></div>
+  if (loading) return <RouteFallback full />
   if (user) return <Navigate to="/" replace />
   return children
 }
@@ -49,21 +58,81 @@ function AppRoutes() {
 
   return (
     <>
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      <Suspense fallback={null}>
+        <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      </Suspense>
       <Routes>
-        <Route path="/login"    element={<GuestOnly><LoginPage /></GuestOnly>} />
-        <Route path="/register" element={<GuestOnly><RegisterPage /></GuestOnly>} />
-        <Route path="/focus"    element={<RequireAuth><FocusFlow /></RequireAuth>} />
-        <Route path="/" element={<RequireAuth><AppLayout onPalette={() => setPaletteOpen(true)} /></RequireAuth>}>
-          <Route index              element={<Dashboard />} />
-          <Route path="sessions"    element={<Sessions />} />
-          <Route path="analytics"   element={<Analytics />} />
-          <Route path="goals"       element={<Goals />} />
-          <Route path="notes"       element={<Notes />} />
-          <Route path="weakness"    element={<Weakness />} />
-          <Route path="predictions" element={<Predictions />} />
-          <Route path="coach"       element={<Coach />} />
-          <Route path="gamification" element={<Gamification />} />
+        <Route path="/login" element={
+          <GuestOnly>
+            <Suspense fallback={<RouteFallback full />}>
+              <LoginPage />
+            </Suspense>
+          </GuestOnly>
+        } />
+        <Route path="/register" element={
+          <GuestOnly>
+            <Suspense fallback={<RouteFallback full />}>
+              <RegisterPage />
+            </Suspense>
+          </GuestOnly>
+        } />
+        <Route path="/" element={
+          <RequireAuth>
+            <Suspense fallback={<RouteFallback full />}>
+              <AppLayout onPalette={() => setPaletteOpen(true)} />
+            </Suspense>
+          </RequireAuth>
+        }>
+          <Route index element={
+            <Suspense fallback={<RouteFallback />}>
+              <Dashboard />
+            </Suspense>
+          } />
+          <Route path="focus" element={
+            <Suspense fallback={<RouteFallback full />}>
+              <FocusFlow />
+            </Suspense>
+          } />
+          <Route path="sessions" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Sessions />
+            </Suspense>
+          } />
+          <Route path="analytics" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Analytics />
+            </Suspense>
+          } />
+          <Route path="goals" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Goals />
+            </Suspense>
+          } />
+          <Route path="notes" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Notes />
+            </Suspense>
+          } />
+          <Route path="weakness" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Weakness />
+            </Suspense>
+          } />
+          <Route path="predictions" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Predictions />
+            </Suspense>
+          } />
+          <Route path="coach" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Coach />
+            </Suspense>
+          } />
+          <Route path="gamification" element={
+            <Suspense fallback={<RouteFallback />}>
+              <Gamification />
+            </Suspense>
+          } />
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

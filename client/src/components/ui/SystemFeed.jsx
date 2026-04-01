@@ -3,30 +3,43 @@ import { engineApi } from '../../services/api'
 import { Terminal, CheckCircle2, AlertCircle } from 'lucide-react'
 import clsx from 'clsx'
 
-export default function SystemFeed() {
+function buildSystemLogs(profile) {
+  if (!profile) return []
+  const metrics = profile.metrics || {}
+  const cognitiveLoad = Number(metrics.cognitiveLoad || 0)
+  const momentumIndex = Number(metrics.momentumIndex || 0)
+  const consistencyScore = Number(metrics.consistencyScore || 0)
+
+  const now = new Date().toLocaleTimeString()
+  const logs = [
+    { id: 1, time: now, type: 'info', msg: `Cognitive capacity evaluated: ${Math.round(cognitiveLoad)}/100.` },
+    { id: 2, time: now, type: 'success', msg: `Momentum Index stabilized at ${momentumIndex.toFixed(2)}.` },
+    { id: 3, time: now, type: 'info', msg: `Consistency tracker synced: Block #${consistencyScore}.` },
+  ]
+
+  if (profile.currentState === 'BurnoutPhase' || cognitiveLoad > 85) {
+    logs.push({ id: 4, time: now, type: 'danger', msg: `CRITICAL: Overload detected. Burnout rules engaged.` })
+  } else {
+    logs.push({ id: 4, time: now, type: 'success', msg: `State normal. Ready for deep focus.` })
+  }
+
+  return logs.reverse()
+}
+
+export default function SystemFeed({ initialProfile = null }) {
   const [logs, setLogs] = useState([])
   
   useEffect(() => {
-    // We simulate real-time system feedback mapping over state changes
+    if (initialProfile) {
+      setLogs(buildSystemLogs(initialProfile))
+      return
+    }
+
     engineApi.getBehaviorProfile().then(res => {
-      const p = res.data?.data
-      if (!p) return
-      
-      const newLogs = [
-        { id: 1, time: new Date().toLocaleTimeString(), type: 'info',  msg: `Cognitive capacity evaluated: ${Math.round(p.metrics.cognitiveLoad)}/100.` },
-        { id: 2, time: new Date().toLocaleTimeString(), type: 'success', msg: `Momentum Index stabilized at ${p.metrics.momentumIndex.toFixed(2)}.` },
-        { id: 3, time: new Date().toLocaleTimeString(), type: 'info',  msg: `Consistency tracker synced: Block #${p.metrics.consistencyScore}.` },
-      ]
-      
-      if (p.currentState === 'BurnoutPhase' || p.metrics.cognitiveLoad > 85) {
-        newLogs.push({ id: 4, time: new Date().toLocaleTimeString(), type: 'danger', msg: `CRITICAL: Overload detected. Burnout rules engaged.` })
-      } else {
-        newLogs.push({ id: 4, time: new Date().toLocaleTimeString(), type: 'success', msg: `State normal. Ready for deep focus.` })
-      }
-      
-      setLogs(newLogs.reverse())
+      const profile = res.data?.data
+      setLogs(buildSystemLogs(profile))
     }).catch(() => {})
-  }, [])
+  }, [initialProfile])
 
   return (
     <div className="mb-5 fade-in font-mono text-xs">

@@ -3,23 +3,32 @@ import { engineApi } from '../../services/api'
 import { AlertTriangle, Cpu } from 'lucide-react'
 import clsx from 'clsx'
 
-export default function CognitiveLoadMeter() {
+export default function CognitiveLoadMeter({ initialProfile = null }) {
   const [load, setLoad] = useState(0)
   const [state, setState] = useState('DeepFocus')
 
   useEffect(() => {
+    const applyProfile = (profile) => {
+      if (!profile) return
+      setLoad(profile.metrics?.cognitiveLoad || 0)
+      setState(profile.currentState || 'DeepFocus')
+    }
+
     const fetchLoad = () => {
       engineApi.getBehaviorProfile().then(res => {
-        if (res.data?.data) {
-           setLoad(res.data.data.metrics?.cognitiveLoad || 0)
-           setState(res.data.data.currentState || 'DeepFocus')
-        }
+        applyProfile(res.data?.data)
       }).catch(() => {})
     }
-    fetchLoad()
+
+    if (initialProfile) {
+      applyProfile(initialProfile)
+    } else {
+      fetchLoad()
+    }
+
     const interval = setInterval(fetchLoad, 10000)
     return () => clearInterval(interval)
-  }, [])
+  }, [initialProfile])
 
   const pct = Math.min(100, Math.max(0, load))
   const color = pct > 85 ? 'bg-red-500' : pct > 60 ? 'bg-amber-500' : 'bg-cyan-500'

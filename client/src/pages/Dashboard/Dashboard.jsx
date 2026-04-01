@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
-import { analyticsApi, sessionApi, goalApi } from '../../services/api'
+import { analyticsApi, goalApi, engineApi } from '../../services/api'
 import { useAuth } from '../../context/AuthContext'
 import ProgressBar from '../../components/ui/ProgressBar'
 import DailyBrief from '../../components/ui/DailyBrief'
@@ -43,6 +43,7 @@ export default function Dashboard() {
   const [stats, setStats] = useState(null)
   const [chartData, setChartData] = useState([])
   const [goals, setGoals] = useState([])
+  const [behaviorProfile, setBehaviorProfile] = useState(null)
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
@@ -50,7 +51,8 @@ export default function Dashboard() {
       analyticsApi.getDashboard(),
       analyticsApi.getCharts(14),
       goalApi.getAll({ status: 'active' }),
-    ]).then(([dash, charts, goalRes]) => {
+      engineApi.getBehaviorProfile(),
+    ]).then(([dash, charts, goalRes, profileRes]) => {
       setStats(dash.data.data)
       const map = {}
       ;(charts.data.data.hours || []).forEach(d => { map[d._id] = d.totalMinutes })
@@ -59,6 +61,7 @@ export default function Dashboard() {
         return { date: format(d, 'MMM d'), mins: map[format(d, 'yyyy-MM-dd')] || 0 }
       }))
       setGoals((goalRes.data.data || []).slice(0, 3))
+      setBehaviorProfile(profileRes.data?.data || null)
     }).finally(() => setLoading(false))
   }, [])
 
@@ -97,7 +100,7 @@ export default function Dashboard() {
       </div>
 
       {/* Cognitive Load Meter */}
-      <CognitiveLoadMeter />
+      <CognitiveLoadMeter initialProfile={behaviorProfile} />
 
       {/* Daily Brief */}
       <DailyBrief />
@@ -186,7 +189,7 @@ export default function Dashboard() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
         <ReadinessDisplay />
-        <SystemFeed />
+        <SystemFeed initialProfile={behaviorProfile} />
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 mb-4">
