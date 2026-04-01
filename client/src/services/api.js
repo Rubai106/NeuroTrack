@@ -25,8 +25,10 @@ api.interceptors.request.use(config => {
 api.interceptors.response.use(
   res => res,
   err => {
-    const msg = err.response?.data?.message || 'Something went wrong'
-    if (err.response?.status === 401) {
+    const requestUrl = String(err.config?.url || '')
+    const isAuthAttempt = requestUrl.includes('/auth/login') || requestUrl.includes('/auth/register')
+
+    if (err.response?.status === 401 && !isAuthAttempt) {
       localStorage.removeItem('nt_token')
       localStorage.removeItem('nt_user')
       window.location.href = '/login'
